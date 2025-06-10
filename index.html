@@ -66,19 +66,20 @@
     margin-top: 10px;
   }
 
-  .label-button {
-    white-space: nowrap;
-    font-family: Arial, sans-serif;
-    font-size: 10px;
-    background: #f0f0f0;
-    border: 1px solid #ccc;
-    border-radius: 6px;
-    padding: 2px 5px;
-    cursor: pointer;
-    position: absolute;
-    z-index: 1000;
-    transform: translate(-50%, -50%);
-  }
+.label-button {
+  white-space: nowrap;
+  font-family: Arial, sans-serif;
+  font-size: 10px;
+  background: #f0f0f0;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 2px 5px;
+  cursor: pointer;
+  position: absolute;
+  z-index: 1000;
+  transform: translate(-50%, -50%);
+}
+
 </style>
 
 </head>
@@ -236,28 +237,40 @@ function drawChart(scores, showLabels = true, scaleMultiplier = 1) {
 }
 
 function addLabelButtons(functionTexts) {
+  // Remove any old buttons
+  document.querySelectorAll(".label-button").forEach(el => el.remove());
+
   const chartArea = radarChart.chartArea;
+  const canvas = radarChart.canvas;
+  const canvasRect = canvas.getBoundingClientRect();
   const centerX = (chartArea.left + chartArea.right) / 2;
   const centerY = (chartArea.top + chartArea.bottom) / 2;
-  const radius = (chartArea.right - chartArea.left) / 2;
+  const radius = radarChart.scales.r.drawingArea;
 
   const angleStep = (2 * Math.PI) / labels.length;
 
   labels.forEach((label, i) => {
     const angle = angleStep * i - Math.PI / 2;
-    const x = centerX + Math.cos(angle) * (radius + 20);
-    const y = centerY + Math.sin(angle) * (radius + 20);
+
+    const x = centerX + Math.cos(angle) * (radius + 30);
+    const y = centerY + Math.sin(angle) * (radius + 30);
 
     const btn = document.createElement("button");
     btn.textContent = label;
     btn.className = "label-button";
-    btn.style.left = `${x}px`;
-    btn.style.top = `${y}px`;
+    btn.style.position = "absolute";
+    btn.style.left = `${canvas.offsetLeft + x - 40}px`;
+    btn.style.top = `${canvas.offsetTop + y - 10}px`;
+    btn.style.padding = "2px 4px";
+    btn.style.fontSize = "10px";
+    btn.style.zIndex = 10;
+    btn.style.whiteSpace = "nowrap";
+
     btn.onclick = () => {
       alert(`${label} Function:\n\n${functionTexts[i] || "(no text provided)"}`);
     };
 
-    document.getElementById("chartContainer").appendChild(btn);
+    canvas.parentElement.appendChild(btn);
   });
 }
 

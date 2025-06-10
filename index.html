@@ -164,12 +164,20 @@
       }
 
 function drawChart(scores, showLabels = true, scaleMultiplier = 1) {
+  const functionTexts = labels.map(label =>
+    document.querySelector(`input[name='function_${label}']`).value.trim()
+  );
+
+  // Destroy existing chart if present
   if (radarChart) radarChart.destroy();
+
+  // Clear existing label buttons
+  document.querySelectorAll(".label-button").forEach(el => el.remove());
 
   radarChart = new Chart(ctx, {
     type: 'radar',
     data: {
-      labels: labels,
+      labels: labels, // Basic label only — interactive elements come from DOM
       datasets: [{
         label: 'Your Scores',
         data: scores,
@@ -189,55 +197,67 @@ function drawChart(scores, showLabels = true, scaleMultiplier = 1) {
         r: {
           min: 0,
           max: 5,
-          ticks: { stepSize: 1, color: '#333', font: { size: 14 } },
-          pointLabels: { display: false }, // Hide labels here
-          grid: { color: '#ccc', circular: true },
+          ticks: {
+            stepSize: 1,
+            color: '#333',
+            font: { size: 16 }
+          },
+          pointLabels: {
+            display: showLabels,
+            callback: function () { return ""; }, // Suppress default label rendering
+          },
+          grid: {
+            color: '#ccc',
+            circular: true
+          },
           angleLines: { color: '#ccc' }
         }
       },
+      elements: {
+        line: { borderWidth: 3, tension: 0 },
+        point: { radius: 5 * scaleMultiplier }
+      },
       plugins: {
         legend: { display: false },
-        tooltip: { enabled: true }
+        tooltip: { position: 'nearest' },
       },
-      animation: {
-        onComplete: function () {
-          // Remove previous label buttons
-          document.querySelectorAll('.label-button').forEach(el => el.remove());
-
-          const chartArea = radarChart.chartArea;
-          const centerX = radarChart.scales.r.xCenter;
-          const centerY = radarChart.scales.r.yCenter;
-          const radius = radarChart.scales.r.drawingArea + 20;
-
-          labels.forEach((label, i) => {
-            const angle = (Math.PI * 2 * i) / labels.length - Math.PI / 2;
-            const x = centerX + Math.cos(angle) * radius;
-            const y = centerY + Math.sin(angle) * radius;
-
-            const btn = document.createElement('button');
-            btn.textContent = label;
-            btn.className = 'label-button';
-            btn.style.position = 'absolute';
-            btn.style.left = `${x - 30}px`;
-            btn.style.top = `${y - 10}px`;
-            btn.style.fontSize = '10px';
-            btn.style.background = '#f0f0f0';
-            btn.style.border = '1px solid #ccc';
-            btn.style.borderRadius = '6px';
-            btn.style.padding = '2px 5px';
-            btn.style.cursor = 'pointer';
-            btn.style.zIndex = 1000;
-
-            btn.onclick = () => {
-              const value = document.querySelector(`input[name='function_${label}']`)?.value?.trim() || "(No input)";
-              alert(`${label}\n\n${value}`);
-            };
-
-            document.body.appendChild(btn);
-          });
-        }
+      onResize: function () {
+        // Reposition labels on resize
+        setTimeout(() => addLabelButtons(functionTexts), 100);
       }
-    }
+    },
+    plugins: [{
+      id: 'customLabels',
+      afterDraw(chart) {
+        addLabelButtons(functionTexts);
+      }
+    }]
+  });
+}
+
+function addLabelButtons(functionTexts) {
+  const chartArea = radarChart.chartArea;
+  const centerX = (chartArea.left + chartArea.right) / 2;
+  const centerY = (chartArea.top + chartArea.bottom) / 2;
+  const radius = (chartArea.right - chartArea.left) / 2;
+
+  const angleStep = (2 * Math.PI) / labels.length;
+
+  labels.forEach((label, i) => {
+    const angle = angleStep * i - Math.PI / 2;
+    const x = centerX + Math.cos(angle) * (radius + 20);
+    const y = centerY + Math.sin(angle) * (radius + 20);
+
+    const btn = document.createElement("button");
+    btn.textContent = label;
+    btn.className = "label-button";
+    btn.style.left = `${x}px`;
+    btn.style.top = `${y}px`;
+    btn.onclick = () => {
+      alert(`${label} Function:\n\n${functionTexts[i] || "(no text provided)"}`);
+    };
+
+    document.getElementById("chartContainer").appendChild(btn);
   });
 }
 

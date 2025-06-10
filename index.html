@@ -144,11 +144,11 @@
         );
       }
 
- function drawChart(scores, showLabels = true, scaleMultiplier = 1) {
+function drawChart(scores, showLabels = true, scaleMultiplier = 1) {
   const functionLabels = labels.map(label => {
     const functionText = document.querySelector(`input[name='function_${label}']`).value.trim();
-    if (!functionText) return label;
-    return `${label}\n(${wrapText(functionText, 50).join('\n')})`;
+    if (!functionText) return [label];
+    return [label, ...wrapText(functionText, 30)];
   });
 
   if (radarChart) radarChart.destroy();
@@ -184,11 +184,11 @@
           },
           pointLabels: {
             display: true,
+            color: (ctx) => labelColors[labels[ctx.index]],
             font: {
               size: 10,
               weight: 'bold'
-            },
-            color: (ctx) => labelColors[labels[ctx.index]]
+            }
           },
           grid: { color: '#ccc', circular: true },
           angleLines: { color: '#ccc' }
@@ -205,6 +205,7 @@
     }
   });
 }
+
 
 function wrapText(text, maxLen) {
   const words = text.split(" ");

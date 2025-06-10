@@ -5,83 +5,82 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>ACT Radar Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<style>
-  body {
-    font-family: Arial, sans-serif;
-    padding: 20px;
-    margin: auto;
-    max-width: 600px;
-    position: relative;
-  }
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      margin: auto;
+      max-width: 600px;
+      position: relative;
+    }
 
-  #formContainer {
-    margin-bottom: 10px;
-  }
+    #formContainer {
+      margin-bottom: 10px;
+    }
 
-  #chartContainer {
-    width: 100%;
-    max-width: 600px;
-    height: 600px;
-    margin: 0 auto;
-    position: relative;
-  }
+    #chartContainer {
+      width: 100%;
+      max-width: 600px;
+      height: 600px;
+      margin: 0 auto;
+      position: relative;
+    }
 
-  canvas#radarChart {
-    width: 100% !important;
-    height: 100% !important;
-    background-color: white !important;
-    display: block;
-    margin: 0 auto;
-  }
+    canvas#radarChart {
+      width: 100% !important;
+      height: 100% !important;
+      background-color: white !important;
+      display: block;
+      margin: 0 auto;
+    }
 
-  #downloadBtn, #updateBtn {
-    margin-top: 10px;
-    padding: 8px 12px;
-    font-size: 14px;
-  }
+    #downloadBtn, #updateBtn {
+      margin-top: 10px;
+      padding: 8px 12px;
+      font-size: 14px;
+    }
 
-  .input-row {
-    display: flex;
-    flex-direction: column;
-    margin-bottom: 10px;
-  }
+    .input-row {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 10px;
+    }
 
-  .input-row label {
-    margin-bottom: 4px;
-  }
+    .input-row label {
+      margin-bottom: 4px;
+    }
 
-  .input-row input,
-  .input-row select {
-    width: 100%;
-  }
+    .input-row input,
+    .input-row select {
+      width: 100%;
+    }
 
-  .error-message {
-    color: red;
-    font-size: 0.9em;
-  }
+    .error-message {
+      color: red;
+      font-size: 0.9em;
+    }
 
-  .success-message {
-    color: green;
-    font-size: 0.9em;
-    margin-top: 10px;
-  }
+    .success-message {
+      color: green;
+      font-size: 0.9em;
+      margin-top: 10px;
+    }
 
-.label-button {
-  white-space: nowrap;
-  font-family: Arial, sans-serif;
-  font-size: 10px;
-  background: #f0f0f0;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  padding: 2px 5px;
-  cursor: pointer;
-  position: absolute;
-  z-index: 1000;
-  transform: translate(-50%, -50%);
-}
-
-</style>
-
+    .label-button {
+      font-family: Arial, sans-serif;
+      font-size: 10px;
+      background: #f0f0f0;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      padding: 2px 5px;
+      cursor: pointer;
+      position: absolute;
+      z-index: 1000;
+      transform: translate(-50%, -50%);
+      pointer-events: auto;
+      white-space: nowrap;
+    }
+  </style>
 </head>
 <body>
   <h2 style="text-align:center">ACT Radar</h2>
@@ -164,135 +163,101 @@
         );
       }
 
-function drawChart(scores, showLabels = true, scaleMultiplier = 1) {
-  const functionTexts = labels.map(label =>
-    document.querySelector(`input[name='function_${label}']`).value.trim()
-  );
+      function drawChart(scores, showLabels = true, scaleMultiplier = 1) {
+        const functionTexts = labels.map(label =>
+          document.querySelector(`input[name='function_${label}']`).value.trim()
+        );
 
-  // Destroy existing chart if present
-  if (radarChart) radarChart.destroy();
+        if (radarChart) radarChart.destroy();
+        document.querySelectorAll(".label-button").forEach(el => el.remove());
 
-  // Clear existing label buttons
-  document.querySelectorAll(".label-button").forEach(el => el.remove());
-
-  radarChart = new Chart(ctx, {
-    type: 'radar',
-    data: {
-      labels: labels, // Basic label only — interactive elements come from DOM
-      datasets: [{
-        label: 'Your Scores',
-        data: scores,
-        fill: true,
-        backgroundColor: 'rgba(68, 68, 68, 0.3)',
-        borderColor: '#444444',
-        pointBackgroundColor: labels.map(label => labelColors[label]),
-        pointBorderColor: '#444444',
-        pointHoverBackgroundColor: '#fff',
-        pointHoverBorderColor: labels.map(label => labelColors[label])
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        r: {
-          min: 0,
-          max: 5,
-          ticks: {
-            stepSize: 1,
-            color: '#333',
-            font: { size: 16 }
+        radarChart = new Chart(ctx, {
+          type: 'radar',
+          data: {
+            labels: labels,
+            datasets: [{
+              label: 'Your Scores',
+              data: scores,
+              fill: true,
+              backgroundColor: 'rgba(68, 68, 68, 0.3)',
+              borderColor: '#444444',
+              pointBackgroundColor: labels.map(label => labelColors[label]),
+              pointBorderColor: '#444444',
+              pointHoverBackgroundColor: '#fff',
+              pointHoverBorderColor: labels.map(label => labelColors[label])
+            }]
           },
-          pointLabels: {
-            display: showLabels,
-            callback: function () { return ""; }, // Suppress default label rendering
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              r: {
+                min: 0,
+                max: 5,
+                ticks: {
+                  stepSize: 1,
+                  color: '#333',
+                  font: { size: 16 }
+                },
+                pointLabels: {
+                  display: showLabels,
+                  callback: () => "" // hide default text
+                },
+                grid: {
+                  color: '#ccc',
+                  circular: true
+                },
+                angleLines: { color: '#ccc' }
+              }
+            },
+            elements: {
+              line: { borderWidth: 3, tension: 0 },
+              point: { radius: 5 * scaleMultiplier }
+            },
+            plugins: {
+              legend: { display: false },
+              tooltip: { position: 'nearest' }
+            },
+            onResize: () => setTimeout(() => addLabelButtons(functionTexts), 100)
           },
-          grid: {
-            color: '#ccc',
-            circular: true
-          },
-          angleLines: { color: '#ccc' }
-        }
-      },
-      elements: {
-        line: { borderWidth: 3, tension: 0 },
-        point: { radius: 5 * scaleMultiplier }
-      },
-      plugins: {
-        legend: { display: false },
-        tooltip: { position: 'nearest' },
-      },
-      onResize: function () {
-        // Reposition labels on resize
-        setTimeout(() => addLabelButtons(functionTexts), 100);
+          plugins: [{
+            id: 'customLabels',
+            afterDraw(chart) {
+              addLabelButtons(functionTexts);
+            }
+          }]
+        });
       }
-    },
-    plugins: [{
-      id: 'customLabels',
-      afterDraw(chart) {
-        addLabelButtons(functionTexts);
+
+      function addLabelButtons(functionTexts) {
+        document.querySelectorAll(".label-button").forEach(el => el.remove());
+
+        const chartArea = radarChart.chartArea;
+        const canvas = radarChart.canvas;
+        const centerX = (chartArea.left + chartArea.right) / 2;
+        const centerY = (chartArea.top + chartArea.bottom) / 2;
+        const radius = radarChart.scales.r.drawingArea;
+        const angleStep = (2 * Math.PI) / labels.length;
+
+        labels.forEach((label, i) => {
+          const angle = angleStep * i - Math.PI / 2;
+          const x = centerX + Math.cos(angle) * (radius + 30);
+          const y = centerY + Math.sin(angle) * (radius + 30);
+
+          const btn = document.createElement("button");
+          btn.textContent = label;
+          btn.className = "label-button";
+          btn.style.left = `${x}px`;
+          btn.style.top = `${y}px`;
+
+          btn.onclick = () => {
+            alert(`${label} Function:\n\n${functionTexts[i] || "(no text provided)"}`);
+          };
+
+          canvas.parentElement.appendChild(btn);
+        });
       }
-    }]
-  });
-}
 
-function addLabelButtons(functionTexts) {
-  // Remove any old buttons
-  document.querySelectorAll(".label-button").forEach(el => el.remove());
-
-  const chartArea = radarChart.chartArea;
-  const canvas = radarChart.canvas;
-  const canvasRect = canvas.getBoundingClientRect();
-  const centerX = (chartArea.left + chartArea.right) / 2;
-  const centerY = (chartArea.top + chartArea.bottom) / 2;
-  const radius = radarChart.scales.r.drawingArea;
-
-  const angleStep = (2 * Math.PI) / labels.length;
-
-  labels.forEach((label, i) => {
-    const angle = angleStep * i - Math.PI / 2;
-
-    const x = centerX + Math.cos(angle) * (radius + 30);
-    const y = centerY + Math.sin(angle) * (radius + 30);
-
-    const btn = document.createElement("button");
-    btn.textContent = label;
-    btn.className = "label-button";
-    btn.style.position = "absolute";
-    btn.style.left = `${canvas.offsetLeft + x - 40}px`;
-    btn.style.top = `${canvas.offsetTop + y - 10}px`;
-    btn.style.padding = "2px 4px";
-    btn.style.fontSize = "10px";
-    btn.style.zIndex = 10;
-    btn.style.whiteSpace = "nowrap";
-
-    btn.onclick = () => {
-      alert(`${label} Function:\n\n${functionTexts[i] || "(no text provided)"}`);
-    };
-
-    canvas.parentElement.appendChild(btn);
-  });
-}
-
-
-
-
-function wrapText(text, maxLen) {
-  const words = text.split(" ");
-  const lines = [];
-  let line = "";
-
-  words.forEach(word => {
-    if ((line + word).length > maxLen) {
-      lines.push(line.trim());
-      line = "";
-    }
-    line += word + " ";
-  });
-
-  if (line) lines.push(line.trim());
-  return lines;
-}
       drawChart(getScoresFromForm());
 
       document.getElementById("updateBtn").addEventListener("click", function (e) {
@@ -327,7 +292,7 @@ function wrapText(text, maxLen) {
           functions[`function_${label}`] = val;
         });
 
-        drawChart(scores); // Redraw with updated labels
+        drawChart(scores); // Redraw with updated buttons
 
         const payload = {
           userEmail: email,

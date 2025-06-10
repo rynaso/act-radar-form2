@@ -157,15 +157,27 @@
       let radarChart;
 
       function getScoresFromForm() {
-        return labels.map(label => parseFloat(document.querySelector(`select[name='${label}']`).value));
+        return labels.map(label =>
+          parseFloat(document.querySelector(`select[name='${label}']`).value)
+        );
       }
 
       function drawChart(scores, showLabels = false, scaleMultiplier = 1) {
+        const functionLabels = labels.map(label => {
+          const functionText = document.querySelector(`input[name='function_${label}']`).value.trim();
+          if (!functionText) return label;
+          const shortText = functionText.length > 20
+            ? functionText.slice(0, 17) + "…"
+            : functionText;
+          return `${label}\n(${shortText})`;
+        });
+
         if (radarChart) radarChart.destroy();
+
         radarChart = new Chart(ctx, {
           type: 'radar',
           data: {
-            labels: labels,
+            labels: functionLabels,
             datasets: [{
               label: 'Your Scores',
               data: scores,
@@ -188,12 +200,15 @@
                 ticks: {
                   stepSize: 1,
                   color: '#333',
-                  font: { size: 24 }
+                  font: { size: 20 }
                 },
                 pointLabels: {
-                  display: showLabels,
-                  color: (ctx) => labelColors[ctx.chart.data.labels[ctx.index]],
-                  font: { size: 14, weight: 'bold' }
+                  display: true,
+                  color: (ctx) => labelColors[labels[ctx.index]],
+                  font: {
+                    size: 10,
+                    weight: 'bold'
+                  }
                 },
                 grid: {
                   color: '#ccc',
@@ -242,13 +257,13 @@
 
         if (hasError) return;
 
-        drawChart(scores);
-
         const functions = {};
         labels.forEach(label => {
           const val = document.querySelector(`input[name='function_${label}']`).value.trim();
           functions[`function_${label}`] = val;
         });
+
+        drawChart(scores); // Ensure updated labels are drawn
 
         const payload = {
           userEmail: email,
@@ -262,19 +277,10 @@
           Processes: scores[6],
           Governance: scores[7],
           Resources: scores[8],
-          function_Capability: scores[9],
-          function_Motivation: scores[10],
-          function_Connectivity: scores[11],
-          function_Segmentation: scores[12],
-          function_Influence: scores[13],
-          function_Norms: scores[14],
-          function_Processes: scores[15],
-          function_Governance: scores[16],
-          function_Resources: scores[17],
-
+          ...functions
         };
 
-        fetch("https://script.google.com/macros/s/AKfycbxF4UaD_qcL_27C3d-g_FhMCZP5K6YxR6Uz0l7f7nsyfFi5Wf0VorRO82_5mngGciU5/exec", {
+        fetch("https://script.google.com/macros/s/AKfycbxjptRo_JvyMlLfEHAwvYQZZLJVQNc1f7H86MSte_O0uJKgKVJd04vvWHE8DVyJ_aut/exec", {
           method: "POST",
           mode: "no-cors",
           headers: { "Content-Type": "application/json" },

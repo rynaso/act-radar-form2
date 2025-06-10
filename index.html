@@ -27,7 +27,7 @@
     canvas#radarChart {
       width: 100% !important;
       height: 100% !important;
-      background-color: #fff !important;
+      background-color: white !important;
     }
 
     #downloadBtn, #updateBtn {
@@ -67,19 +67,17 @@
   <h2 style="text-align:center">ACT Radar</h2>
 
   <div id="formContainer">
-    <form id="scoreForm">
-      <div class="input-row">
-        <label for="userEmail">Your Email:</label>
-        <input type="email" id="userEmail" required />
-        <div id="emailError" class="error-message"></div>
-      </div>
-      <div class="input-row">
-        <label for="projectName">Project Name:</label>
-        <input type="text" id="projectName" />
-        <div id="projectError" class="error-message"></div>
-      </div>
-    </form>
-    <div id="scoreInputs"></div>
+    <div class="input-row">
+      <label for="userEmail">Your Email:</label>
+      <input type="email" id="userEmail" required />
+      <div id="emailError" class="error-message"></div>
+    </div>
+    <div class="input-row">
+      <label for="projectName">Project Name:</label>
+      <input type="text" id="projectName" />
+      <div id="projectError" class="error-message"></div>
+    </div>
+    <form id="scoreForm"></form>
     <button id="updateBtn">Update Chart</button>
     <button id="downloadBtn">Download Picture</button>
     <div id="submissionSuccess" class="success-message"></div>
@@ -108,7 +106,7 @@
         "Resources": "#93AB94"
       };
 
-      const form = document.getElementById("scoreInputs");
+      const form = document.getElementById("scoreForm");
 
       labels.forEach(label => {
         const row = document.createElement("div");
@@ -116,7 +114,6 @@
 
         const labelEl = document.createElement("label");
         labelEl.textContent = label;
-        labelEl.htmlFor = label;
         row.appendChild(labelEl);
 
         const select = document.createElement("select");
@@ -150,10 +147,8 @@
       function drawChart(scores, showLabels = true, scaleMultiplier = 1) {
         const functionLabels = labels.map(label => {
           const functionText = document.querySelector(`input[name='function_${label}']`).value.trim();
-          const shortText = functionText.length > 40
-            ? functionText.slice(0, 37) + "…"
-            : functionText;
-          return shortText ? `${label}\n(${shortText})` : label;
+          if (!functionText) return label;
+          return `${label}\n(${wrapText(functionText, 25)})`;
         });
 
         if (radarChart) radarChart.destroy();
@@ -184,15 +179,15 @@
                 ticks: {
                   stepSize: 1,
                   color: '#333',
-                  font: { size: 18 }
+                  font: { size: 16 }
                 },
                 pointLabels: {
-                  display: true,
+                  display: showLabels,
+                  color: (ctx) => labelColors[labels[ctx.index]],
                   font: {
-                    size: 11,
+                    size: 10,
                     weight: 'bold'
-                  },
-                  color: (ctx) => labelColors[labels[ctx.index]]
+                  }
                 },
                 grid: {
                   color: '#ccc',
@@ -211,6 +206,23 @@
             }
           }
         });
+      }
+
+      function wrapText(text, maxLen) {
+        const words = text.split(" ");
+        let lines = [];
+        let line = "";
+
+        words.forEach(word => {
+          if ((line + word).length > maxLen) {
+            lines.push(line.trim());
+            line = "";
+          }
+          line += word + " ";
+        });
+        if (line) lines.push(line.trim());
+
+        return lines.join("\n");
       }
 
       drawChart(getScoresFromForm());
@@ -247,7 +259,7 @@
           functions[`function_${label}`] = val;
         });
 
-        drawChart(scores);
+        drawChart(scores); // Redraw with updated labels
 
         const payload = {
           userEmail: email,
@@ -261,16 +273,7 @@
           Processes: scores[6],
           Governance: scores[7],
           Resources: scores[8],
-          function_Capability: scores[9],
-          function_Motivation: scores[10],
-          function_Connectivity: scores[11],
-          function_Segmentation: scores[12],
-          function_Influence: scores[13],
-          function_Norms: scores[14],
-          function_Processes: scores[15],
-          function_Governance: scores[16],
-          function_Resources: scores[17],
-
+          ...functions
         };
 
         fetch("https://script.google.com/macros/s/AKfycbxjptRo_JvyMlLfEHAwvYQZZLJVQNc1f7H86MSte_O0uJKgKVJd04vvWHE8DVyJ_aut/exec", {

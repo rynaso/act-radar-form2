@@ -144,87 +144,84 @@
         );
       }
 
-      function drawChart(scores, showLabels = true, scaleMultiplier = 1) {
-        const functionLabels = labels.map(label => {
-          const functionText = document.querySelector(`input[name='function_${label}']`).value.trim();
-          if (!functionText) return label;
-          return `${label}\n(${wrapText(functionText, 25)})`;
-        });
+ function drawChart(scores, showLabels = true, scaleMultiplier = 1) {
+  const functionLabels = labels.map(label => {
+    const functionText = document.querySelector(`input[name='function_${label}']`).value.trim();
+    if (!functionText) return label;
+    return `${label}\n(${wrapText(functionText, 50).join('\n')})`;
+  });
 
-        if (radarChart) radarChart.destroy();
+  if (radarChart) radarChart.destroy();
 
-        radarChart = new Chart(ctx, {
-          type: 'radar',
-          data: {
-            labels: functionLabels,
-            datasets: [{
-              label: 'Your Scores',
-              data: scores,
-              fill: true,
-              backgroundColor: 'rgba(68, 68, 68, 0.3)',
-              borderColor: '#444444',
-              pointBackgroundColor: labels.map(label => labelColors[label]),
-              pointBorderColor: '#444444',
-              pointHoverBackgroundColor: '#fff',
-              pointHoverBorderColor: labels.map(label => labelColors[label])
-            }]
+  radarChart = new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: functionLabels,
+      datasets: [{
+        label: 'Your Scores',
+        data: scores,
+        fill: true,
+        backgroundColor: 'rgba(68, 68, 68, 0.3)',
+        borderColor: '#444444',
+        pointBackgroundColor: labels.map(label => labelColors[label]),
+        pointBorderColor: '#444444',
+        pointHoverBackgroundColor: '#fff',
+        pointHoverBorderColor: labels.map(label => labelColors[label])
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      layout: { padding: 20 },
+      scales: {
+        r: {
+          min: 0,
+          max: 5,
+          ticks: {
+            stepSize: 1,
+            color: '#333',
+            font: { size: 14 }
           },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-              r: {
-                min: 0,
-                max: 5,
-                ticks: {
-                  stepSize: 1,
-                  color: '#333',
-                  font: { size: 16 }
-                },
-                pointLabels: {
-                  display: showLabels,
-                  color: (ctx) => labelColors[labels[ctx.index]],
-                  font: {
-                    size: 10,
-                    weight: 'bold'
-                  }
-                },
-                grid: {
-                  color: '#ccc',
-                  circular: true
-                },
-                angleLines: { color: '#ccc' }
-              }
+          pointLabels: {
+            display: true,
+            font: {
+              size: 10,
+              weight: 'bold'
             },
-            elements: {
-              line: { borderWidth: 3, tension: 0 },
-              point: { radius: 5 * scaleMultiplier }
-            },
-            plugins: {
-              legend: { display: false },
-              tooltip: { position: 'nearest' }
-            }
-          }
-        });
+            color: (ctx) => labelColors[labels[ctx.index]]
+          },
+          grid: { color: '#ccc', circular: true },
+          angleLines: { color: '#ccc' }
+        }
+      },
+      elements: {
+        line: { borderWidth: 3, tension: 0 },
+        point: { radius: 5 * scaleMultiplier }
+      },
+      plugins: {
+        legend: { display: false },
+        tooltip: { position: 'nearest' }
       }
+    }
+  });
+}
 
-      function wrapText(text, maxLen) {
-        const words = text.split(" ");
-        let lines = [];
-        let line = "";
+function wrapText(text, maxLen) {
+  const words = text.split(" ");
+  const lines = [];
+  let line = "";
 
-        words.forEach(word => {
-          if ((line + word).length > maxLen) {
-            lines.push(line.trim());
-            line = "";
-          }
-          line += word + " ";
-        });
-        if (line) lines.push(line.trim());
+  words.forEach(word => {
+    if ((line + word).length > maxLen) {
+      lines.push(line.trim());
+      line = "";
+    }
+    line += word + " ";
+  });
 
-        return lines.join("\n");
-      }
-
+  if (line) lines.push(line.trim());
+  return lines;
+}
       drawChart(getScoresFromForm());
 
       document.getElementById("updateBtn").addEventListener("click", function (e) {

@@ -14,7 +14,6 @@
     }
 
     #formContainer {
-      width: 100%;
       margin-bottom: 10px;
     }
 
@@ -52,7 +51,6 @@
       margin-top: 10px;
       padding: 8px 12px;
       font-size: 14px;
-      display: inline-block;
     }
 
     .input-row {
@@ -73,7 +71,6 @@
     .error-message {
       color: red;
       font-size: 0.9em;
-      margin-top: 2px;
     }
 
     .success-message {
@@ -89,12 +86,12 @@
   <div id="formContainer">
     <div class="input-row">
       <label for="userEmail">Your Email:</label>
-      <input type="email" id="userEmail" name="userEmail" required />
+      <input type="email" id="userEmail" required />
       <div id="emailError" class="error-message"></div>
     </div>
     <div class="input-row">
       <label for="projectName">Project Name:</label>
-      <input type="text" id="projectName" name="projectName" />
+      <input type="text" id="projectName" />
       <div id="projectError" class="error-message"></div>
     </div>
     <form id="scoreForm"></form>
@@ -147,17 +144,10 @@
         }
         row.appendChild(select);
 
-        const functionLabel = document.createElement("label");
-        functionLabel.textContent = `Function for ${label}`;
-        functionLabel.htmlFor = `function_${label}`;
-        functionLabel.style.marginTop = "6px";
-        row.appendChild(functionLabel);
-
         const functionInput = document.createElement("input");
         functionInput.type = "text";
         functionInput.name = `function_${label}`;
-        functionInput.placeholder = `Enter function for ${label}`;
-        functionInput.style.marginTop = "2px";
+        functionInput.placeholder = `Function for ${label}`;
         row.appendChild(functionInput);
 
         form.appendChild(row);
@@ -212,7 +202,6 @@
                 angleLines: { color: '#ccc' }
               }
             },
-            layout: { padding: 0 },
             elements: {
               line: { borderWidth: 3, tension: 0 },
               point: { radius: 5 * scaleMultiplier }
@@ -257,8 +246,8 @@
 
         const functions = {};
         labels.forEach(label => {
-          const funcValue = document.querySelector(`input[name='function_${label}']`).value.trim();
-          functions[`function_${label}`] = funcValue;
+          const val = document.querySelector(`input[name='function_${label}']`).value.trim();
+          functions[`function_${label}`] = val;
         });
 
         const payload = {
@@ -294,7 +283,6 @@
 
         setTimeout(() => {
           const chartCanvas = document.getElementById("radarChart");
-
           const tempCanvas = document.createElement("canvas");
           tempCanvas.width = chartCanvas.width;
           tempCanvas.height = chartCanvas.height;

@@ -21,30 +21,13 @@
       width: 100%;
       max-width: 600px;
       height: 600px;
-      position: relative;
       margin: 0 auto;
     }
 
-    #chartContainer::before {
-      content: "";
-      position: absolute;
-      top: -5%;
-      left: -5%;
-      width: 110%;
-      height: 110%;
-      background: url("https://i.postimg.cc/153BYDCs/ACT-radar-background-3.png") no-repeat center center;
-      background-size: contain;
-      z-index: 0;
-    }
-
     canvas#radarChart {
-      position: absolute;
-      top: 25%;
-      left: 25%;
-      width: 50% !important;
-      height: 50% !important;
-      background-color: transparent !important;
-      z-index: 10;
+      width: 100% !important;
+      height: 100% !important;
+      background-color: white !important;
     }
 
     #downloadBtn, #updateBtn {
@@ -131,7 +114,6 @@
 
         const labelEl = document.createElement("label");
         labelEl.textContent = label;
-        labelEl.htmlFor = label;
         row.appendChild(labelEl);
 
         const select = document.createElement("select");
@@ -162,14 +144,11 @@
         );
       }
 
-      function drawChart(scores, showLabels = false, scaleMultiplier = 1) {
+      function drawChart(scores, showLabels = true, scaleMultiplier = 1) {
         const functionLabels = labels.map(label => {
           const functionText = document.querySelector(`input[name='function_${label}']`).value.trim();
           if (!functionText) return label;
-          const shortText = functionText.length > 20
-            ? functionText.slice(0, 17) + "…"
-            : functionText;
-          return `${label}\n(${shortText})`;
+          return `${label}\n(${wrapText(functionText, 25)})`;
         });
 
         if (radarChart) radarChart.destroy();
@@ -200,10 +179,10 @@
                 ticks: {
                   stepSize: 1,
                   color: '#333',
-                  font: { size: 20 }
+                  font: { size: 16 }
                 },
                 pointLabels: {
-                  display: true,
+                  display: showLabels,
                   color: (ctx) => labelColors[labels[ctx.index]],
                   font: {
                     size: 10,
@@ -227,6 +206,23 @@
             }
           }
         });
+      }
+
+      function wrapText(text, maxLen) {
+        const words = text.split(" ");
+        let lines = [];
+        let line = "";
+
+        words.forEach(word => {
+          if ((line + word).length > maxLen) {
+            lines.push(line.trim());
+            line = "";
+          }
+          line += word + " ";
+        });
+        if (line) lines.push(line.trim());
+
+        return lines.join("\n");
       }
 
       drawChart(getScoresFromForm());
@@ -263,7 +259,7 @@
           functions[`function_${label}`] = val;
         });
 
-        drawChart(scores); // Ensure updated labels are drawn
+        drawChart(scores); // Redraw with updated labels
 
         const payload = {
           userEmail: email,

@@ -145,10 +145,9 @@
       }
 
 function drawChart(scores, showLabels = true, scaleMultiplier = 1) {
-  const functionLabels = labels.map(label => {
+  const functionTexts = labels.map(label => {
     const functionText = document.querySelector(`input[name='function_${label}']`).value.trim();
-    if (!functionText) return [label];
-    return [label, ...wrapText(functionText, 30)];
+    return wrapText(functionText, 30);
   });
 
   if (radarChart) radarChart.destroy();
@@ -156,7 +155,7 @@ function drawChart(scores, showLabels = true, scaleMultiplier = 1) {
   radarChart = new Chart(ctx, {
     type: 'radar',
     data: {
-      labels: functionLabels,
+      labels: labels, // keep it clean for the scale
       datasets: [{
         label: 'Your Scores',
         data: scores,
@@ -172,7 +171,6 @@ function drawChart(scores, showLabels = true, scaleMultiplier = 1) {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      layout: { padding: 20 },
       scales: {
         r: {
           min: 0,
@@ -183,14 +181,12 @@ function drawChart(scores, showLabels = true, scaleMultiplier = 1) {
             font: { size: 14 }
           },
           pointLabels: {
-            display: true,
-            color: (ctx) => labelColors[labels[ctx.index]],
-            font: {
-              size: 10,
-              weight: 'bold'
-            }
+            display: false // turn off default labels
           },
-          grid: { color: '#ccc', circular: true },
+          grid: {
+            color: '#ccc',
+            circular: true
+          },
           angleLines: { color: '#ccc' }
         }
       },
@@ -200,9 +196,45 @@ function drawChart(scores, showLabels = true, scaleMultiplier = 1) {
       },
       plugins: {
         legend: { display: false },
-        tooltip: { position: 'nearest' }
+        tooltip: { position: 'nearest' },
+        customLabels: {
+          labels,
+          functionTexts
+        }
       }
-    }
+    },
+    plugins: [{
+      id: 'customLabels',
+      afterDraw(chart, args, options) {
+        const { ctx, chartArea, scales } = chart;
+        const centerX = chart.width / 2;
+        const centerY = chart.height / 2;
+        const scale = scales.r;
+        const labelFontSize = 10;
+        const lineHeight = 12;
+        const radius = scale.drawingArea + 10;
+
+        ctx.font = `${labelFontSize}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+
+        options.labels.forEach((label, i) => {
+          const angle = (Math.PI * 2 * i) / options.labels.length - Math.PI / 2;
+          const x = centerX + Math.cos(angle) * radius;
+          const y = centerY + Math.sin(angle) * radius;
+
+          // Draw label
+          ctx.fillStyle = labelColors[label];
+          ctx.fillText(label, x, y);
+
+          // Draw function lines
+          const lines = options.functionTexts[i];
+          lines.forEach((line, idx) => {
+            ctx.fillText(line, x, y + (idx + 1) * lineHeight);
+          });
+        });
+      }
+    }]
   });
 }
 

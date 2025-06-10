@@ -127,9 +127,16 @@
       };
 
       const form = document.getElementById("scoreForm");
+
       labels.forEach(label => {
         const row = document.createElement("div");
         row.className = "input-row";
+
+        const labelEl = document.createElement("label");
+        labelEl.textContent = label;
+        labelEl.htmlFor = label;
+        row.appendChild(labelEl);
+
         const select = document.createElement("select");
         select.name = label;
         for (let i = 1; i <= 5; i++) {
@@ -138,11 +145,21 @@
           opt.textContent = i;
           select.appendChild(opt);
         }
-        const labelEl = document.createElement("label");
-        labelEl.textContent = label;
-        labelEl.htmlFor = label;
-        row.appendChild(labelEl);
         row.appendChild(select);
+
+        const functionLabel = document.createElement("label");
+        functionLabel.textContent = `Function for ${label}`;
+        functionLabel.htmlFor = `function_${label}`;
+        functionLabel.style.marginTop = "6px";
+        row.appendChild(functionLabel);
+
+        const functionInput = document.createElement("input");
+        functionInput.type = "text";
+        functionInput.name = `function_${label}`;
+        functionInput.placeholder = `Enter function for ${label}`;
+        functionInput.style.marginTop = "2px";
+        row.appendChild(functionInput);
+
         form.appendChild(row);
       });
 
@@ -238,31 +255,33 @@
 
         drawChart(scores);
 
-        const params = new URLSearchParams();
-        params.append("userEmail", email);
-        params.append("projectName", project);
-        labels.forEach((label, i) => {
-          params.append(label, scores[i]);
+        const functions = {};
+        labels.forEach(label => {
+          const funcValue = document.querySelector(`input[name='function_${label}']`).value.trim();
+          functions[`function_${label}`] = funcValue;
         });
 
+        const payload = {
+          userEmail: email,
+          projectName: project,
+          Capability: scores[0],
+          Motivation: scores[1],
+          Connectivity: scores[2],
+          Segmentation: scores[3],
+          Influence: scores[4],
+          Norms: scores[5],
+          Processes: scores[6],
+          Governance: scores[7],
+          Resources: scores[8],
+          ...functions
+        };
+
         fetch("https://script.google.com/macros/s/AKfycbwNNy28LueTqv0acD086kuclq3MPkAVjrKgWYWm4YBAw-b1mEw_lfouDHCf_XGBzpV7/exec", {
-method: "POST",
-  mode: "no-cors",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    userEmail: email,
-    projectName: project,
-    Capability: scores[0],
-    Motivation: scores[1],
-    Connectivity: scores[2],
-    Segmentation: scores[3],
-    Influence: scores[4],
-    Norms: scores[5],
-    Processes: scores[6],
-    Governance: scores[7],
-    Resources: scores[8]
-  })
-});
+          method: "POST",
+          mode: "no-cors",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
 
         document.getElementById("submissionSuccess").textContent = "Your scores have been submitted!";
       });
